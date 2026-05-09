@@ -98,6 +98,7 @@ N=100000, dice=1-3, state=after_a_upper, order=random_each_round, target=next_fi
 西格莉卡团子: 15.40%
 卡提希娅团子: 14.62%
 陆·赫斯团子: 14.42%
+
 前4率:
 菲比团子: 73.25%
 绯雪团子: 69.95%
@@ -105,6 +106,7 @@ N=100000, dice=1-3, state=after_a_upper, order=random_each_round, target=next_fi
 西格莉卡团子: 64.94%
 卡提希娅团子: 62.93%
 陆·赫斯团子: 60.96%
+
 平均名次:
 菲比团子: 3.28
 绯雪团子: 3.36
