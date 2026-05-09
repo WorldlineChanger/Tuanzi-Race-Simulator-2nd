@@ -2,14 +2,21 @@
 """
 鸣潮「团子快跑」蒙特卡洛模拟器
 说明：只用标准库，直接运行：python tuanzi_race_sim.py --n 50000
-默认假设：普通团子骰子为1/2/3等概率；布大王骰子为1-6；初始堆叠随机；每回合行动顺序随机。
+默认假设：普通团子骰子为1/2/3等概率；布大王团子骰子为1-6；初始堆叠随机；每回合行动顺序随机。
 """
 import argparse
 import collections
 import random
 
-DANGO = ["糖", "日冕", "双", "白鸟", "翻盘", "岁主"]
-KING = "布大王"
+CANDY = "陆·赫斯团子"
+CORONA = "西格莉卡团子"
+DOUBLE = "达妮娅团子"
+WHITE_BIRD = "绯雪团子"
+COMEBACK = "卡提希娅团子"
+BLESSING = "菲比团子"
+
+DANGO = [CANDY, CORONA, DOUBLE, WHITE_BIRD, COMEBACK, BLESSING]
+KING = "布大王团子"
 PROP = {3, 11, 16, 23}     # 推进装置
 OBST = {10, 28}            # 阻遏装置
 RIFT = {6, 20}             # 时空裂隙
@@ -17,8 +24,8 @@ FINISH = 32
 
 FIXED_ORDERS = {
     # bottom -> top
-    "skill_bottom_to_top": ["糖", "日冕", "双", "白鸟", "翻盘", "岁主"],
-    "skill_top_to_bottom": ["岁主", "翻盘", "白鸟", "双", "日冕", "糖"],
+    "skill_bottom_to_top": DANGO[:],
+    "skill_top_to_bottom": list(reversed(DANGO)),
 }
 
 def rank_order(stacks):
@@ -56,19 +63,19 @@ def move(stacks, mover, dist, direction, rng):
             break
         if pos in PROP:
             # 「来颗糖吧」：触发推进时，普通+1基础上再额外+3。
-            delta = 1 + (3 if mover == "糖" and direction == 1 else 0)
+            delta = 1 + (3 if mover == CANDY and direction == 1 else 0)
             pos = min(FINISH, pos + delta)
             continue
         if pos in OBST:
             # 「来颗糖吧」：触发阻遏时，普通-1基础上再额外-1。
-            delta = -1 - (1 if mover == "糖" and direction == 1 else 0)
+            delta = -1 - (1 if mover == CANDY and direction == 1 else 0)
             pos = max(1, pos + delta)
             continue
         break
 
     target = stacks.get(pos, [])
     if mover == KING:
-        # 布大王始终在底部；若它带着普通团子移动，普通团子落在目标堆叠上方。
+        # 布大王团子始终在底部；若它带着普通团子移动，普通团子落在目标堆叠上方。
         regular_segment = [x for x in segment if x != KING]
         new_stack = [KING] + target + regular_segment
     else:
@@ -133,7 +140,7 @@ def simulate_one(rng, normal_faces=(1, 2, 3), start_order=None, order_mode="rand
 
         # 「日冕，帮帮忙！」：每轮开始标记自己前面紧邻的最多两个团子。
         ranks = rank_order(stacks)
-        idx = ranks.index("日冕")
+        idx = ranks.index(CORONA)
         marked = set(ranks[max(0, idx - 2):idx])
 
         for p in action:
@@ -143,20 +150,20 @@ def simulate_one(rng, normal_faces=(1, 2, 3), start_order=None, order_mode="rand
                 base = rolls[p]
                 bonus = 0
 
-                if p == "岁主" and rng.random() < 0.5:
+                if p == BLESSING and rng.random() < 0.5:
                     bonus += 1
 
-                if p == "双":
+                if p == DOUBLE:
                     if prev_roll[p] is not None and base == prev_roll[p]:
                         bonus += 2
                     prev_roll[p] = base
                 else:
                     prev_roll[p] = base
 
-                if p == "白鸟" and white_met_king:
+                if p == WHITE_BIRD and white_met_king:
                     bonus += 1
 
-                if p == "翻盘" and flip_active and rng.random() < 0.6:
+                if p == COMEBACK and flip_active and rng.random() < 0.6:
                     bonus += 2
 
                 dist = base + bonus
@@ -165,13 +172,13 @@ def simulate_one(rng, normal_faces=(1, 2, 3), start_order=None, order_mode="rand
 
                 move(stacks, p, dist, 1, rng)
 
-            # 白鸟遇到布大王后，之后自己的行动额外+1。
-            if king_active and pos_of(stacks, "白鸟") == pos_of(stacks, KING):
+            # 绯雪团子遇到布大王团子后，之后自己的行动额外+1。
+            if king_active and pos_of(stacks, WHITE_BIRD) == pos_of(stacks, KING):
                 white_met_king = True
 
             # 翻盘桥段：自己移动结束后若最后一名，之后每次行动60%额外+2。
-            if p == "翻盘" and not flip_triggered:
-                if rank_order(stacks)[-1] == "翻盘":
+            if p == COMEBACK and not flip_triggered:
+                if rank_order(stacks)[-1] == COMEBACK:
                     flip_triggered = True
                     flip_active = True
 
@@ -179,7 +186,7 @@ def simulate_one(rng, normal_faces=(1, 2, 3), start_order=None, order_mode="rand
             if max(pos_of(stacks, d) for d in DANGO) >= FINISH:
                 return rank_order(stacks)[0], round_no
 
-        # 回合结束：布大王若没有和最后一名普通团子在一起，则回到终点。
+        # 回合结束：布大王团子若没有和最后一名普通团子在一起，则回到终点。
         if king_active:
             last = rank_order(stacks)[-1]
             king_pos = pos_of(stacks, KING)
