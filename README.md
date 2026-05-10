@@ -1,6 +1,9 @@
 # Tuanzi Race Simulator - 小团快跑模拟器（二周年）
 
 <img width="2026" height="358" alt="image" src="https://github.com/user-attachments/assets/3a6a4617-00a2-4c9d-a128-40869c29e65f" />
+<hr>
+<img width="1970" height="352" alt="image" src="https://github.com/user-attachments/assets/4739074b-5994-409a-8d26-35e28bc5e8ef" />
+
 
 # 🍡
 鸣潮「小团快跑」活动的蒙特卡洛模拟器。
