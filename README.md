@@ -39,7 +39,7 @@ N=50000, group=A, dice=1-3, state=fresh, start=random, order=random_each_round, 
 
 ## 赛事进度与预测
 
-更新时间：2026-05-10，A 组下半场结束后，B 组上半场开始前。
+更新时间：2026-05-11，B 组上半场结束后，B 组下半场开始前。
 
 ### 赛程概览
 
@@ -53,7 +53,7 @@ N=50000, group=A, dice=1-3, state=fresh, start=random, order=random_each_round, 
 |---|---|---|
 | 05.09 | A 组上半场 | 已完赛 |
 | 05.10 | A 组下半场 | 已完赛 |
-| 05.11 | B 组上半场 | 待开赛 |
+| 05.11 | B 组上半场 | 已完赛 |
 | 05.12 | B 组下半场 | 待开赛 |
 | 05.13 | C 组上半场 | 待开赛 |
 | 05.14 | C 组下半场 | 待开赛 |
@@ -63,6 +63,41 @@ N=50000, group=A, dice=1-3, state=fresh, start=random, order=random_each_round, 
 
 <details>
 <summary>2026-05-09 A 组上半场（已完赛）</summary>
+
+#### 赛前预测
+
+复现命令：
+
+```bash
+python tuanzi_race_sim.py --group A --state fresh --n 100000 --seed 20260509 --rank-stats
+```
+
+```text
+N=100000, group=A, dice=1-3, state=fresh, start=random, order=random_each_round, target=finish, avg_round=8.39
+冠军率:
+达妮娅团子: 22.34%
+菲比团子: 18.59%
+陆·赫斯团子: 16.04%
+西格莉卡团子: 15.72%
+卡提希娅团子: 15.23%
+绯雪团子: 12.08%
+
+前4率:
+达妮娅团子: 76.46%
+菲比团子: 72.66%
+卡提希娅团子: 66.97%
+陆·赫斯团子: 65.66%
+西格莉卡团子: 64.27%
+绯雪团子: 53.98%
+
+平均名次:
+达妮娅团子: 3.08
+菲比团子: 3.28
+卡提希娅团子: 3.52
+陆·赫斯团子: 3.55
+西格莉卡团子: 3.60
+绯雪团子: 3.98
+```
 
 #### 实际结果
 
@@ -141,8 +176,8 @@ N=100000, group=A, dice=1-3, state=after_upper, start=random, order=random_each_
 
 </details>
 
-<details open>
-<summary>2026-05-11 B 组上半场（赛前预测）</summary>
+<details>
+<summary>2026-05-11 B 组上半场（已完赛）</summary>
 
 复现命令：
 
@@ -177,6 +212,68 @@ N=100000, group=B, dice=1-3, state=fresh, start=random, order=random_each_round,
 珂莱塔团子: 3.51
 爱弥斯团子: 3.54
 莫宁团子: 4.23
+```
+
+#### 实际结果
+
+| 名次 | 团子 |
+|---|---|
+| 1 | 珂莱塔团子 |
+| 2 | 千咲团子 |
+| 3 | 琳奈团子 |
+| 4 | 莫宁团子 |
+| 5 | 爱弥斯团子 |
+| 6 | 守岸人团子 |
+
+#### 赛后站位
+
+第 32 格同格记录来自赛后画面；模拟预设中仍沿用“布大王团子位于堆叠底部”的规则处理。
+
+| 格子 | 堆叠顺序 |
+|---|---|
+| 29 | 守岸人团子 |
+| 30 | 自下而上：爱弥斯团子、莫宁团子 |
+| 31 | 自下而上：琳奈团子、千咲团子 |
+| 32 | 同格：珂莱塔团子、布大王团子 |
+
+</details>
+
+<details open>
+<summary>2026-05-12 B 组下半场（赛前预测）</summary>
+
+复现命令：
+
+```bash
+python tuanzi_race_sim.py --group B --state after_upper --n 100000 --seed 20260512 --rank-stats
+```
+
+预测使用 05.11 赛后站位，按环形赛道继续模拟，目标为下一次冲过终点。普通团子骰子仍按 1 / 2 / 3 等概率处理，每回合行动顺序随机；技能的内部状态按新场次重置。
+
+```text
+N=100000, group=B, dice=1-3, state=after_upper, start=random, order=random_each_round, target=next_finish, avg_round=8.28
+冠军率:
+千咲团子: 25.60%
+琳奈团子: 22.54%
+珂莱塔团子: 15.44%
+爱弥斯团子: 13.68%
+守岸人团子: 13.16%
+莫宁团子: 9.57%
+
+前4率:
+千咲团子: 86.40%
+琳奈团子: 72.28%
+珂莱塔团子: 63.79%
+爱弥斯团子: 62.67%
+守岸人团子: 59.34%
+莫宁团子: 55.51%
+
+平均名次:
+千咲团子: 2.71
+琳奈团子: 3.19
+珂莱塔团子: 3.61
+爱弥斯团子: 3.71
+守岸人团子: 3.80
+莫宁团子: 3.98
 ```
 
 </details>
@@ -301,6 +398,12 @@ python tuanzi_race_sim.py --group A --state after_upper --n 100000 --seed 202605
 python tuanzi_race_sim.py --group B --state fresh --n 100000 --seed 20260511 --rank-stats
 ```
 
+预测 B 组下半场：
+
+```bash
+python tuanzi_race_sim.py --group B --state after_upper --n 100000 --seed 20260512 --rank-stats
+```
+
 ## 参数说明
 
 ### `--group`
@@ -371,7 +474,7 @@ python tuanzi_race_sim.py --group B --state fresh --n 100000 --seed 20260511 --r
 含义：
 
 - `fresh`：从第 1 格重新开赛，沿用原始默认模拟。A / B 组都支持。
-- `after_upper`：目前用于 A 组 05.09 上半场赛后站位，按环形赛道继续模拟 05.10 下半场，目标为下一次冲过终点。
+- `after_upper`：使用指定组别的上半场赛后站位，按环形赛道继续模拟下半场，目标为下一次冲过终点。目前 A / B 组都支持。
 
 脚本仍兼容旧别名 `--state after_a_upper`，但 README 后续统一使用 `--group A --state after_upper`。
 
@@ -465,6 +568,12 @@ python tuanzi_race_sim.py --group A --state after_upper --n 100000 --seed 202605
 python tuanzi_race_sim.py --group B --state fresh --n 100000 --seed 20260511 --rank-stats
 ```
 
+预测 B 组下半场并输出前 4 率：
+
+```bash
+python tuanzi_race_sim.py --group B --state after_upper --n 100000 --seed 20260512 --rank-stats
+```
+
 ## 结果解读
 
 输出中的百分比表示该团子在模拟比赛中获得冠军的比例。
@@ -493,6 +602,7 @@ python tuanzi_race_sim.py --group B --state fresh --n 100000 --seed 20260511 --r
 8. B 组「精密演算」按首次 3、之后 2 / 1 循环建模。
 9. B 组「炫彩时刻！」按互斥概率建模：20% 无法移动、60% 双倍移动、20% 正常移动。
 10. B 组「视阈解明」会和本轮所有已投点数比较；布大王团子登场后也计入本轮点数。
+11. B 组下半场预设中，第 32 格同格按“布大王团子位于堆叠底部”的既有规则建模。
 
 如果之后实测发现游戏细节不同，可以通过参数或修改脚本中的规则函数进行调整。
 
