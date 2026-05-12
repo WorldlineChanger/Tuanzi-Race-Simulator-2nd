@@ -1,8 +1,11 @@
 # Tuanzi Race Simulator - 小团快跑模拟器（二周年）
 
 <img width="2026" height="358" alt="image" src="https://github.com/user-attachments/assets/3a6a4617-00a2-4c9d-a128-40869c29e65f" />
-<hr>
+
 <img width="2012" height="331" alt="image" src="https://github.com/user-attachments/assets/f4d36d74-e23b-463d-9e75-c75988617007" />
+
+<img width="2040" height="355" alt="image" src="https://github.com/user-attachments/assets/76b1ea44-038c-4bd6-b0dc-853fa46137bc" />
+
 
 
 # 🍡
