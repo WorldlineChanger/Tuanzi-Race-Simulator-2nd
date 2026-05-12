@@ -31,6 +31,12 @@ SKILL_COLORFUL = "colorful"
 SKILL_GHOST = "ghost"
 SKILL_TWO_OR_THREE = "two_or_three"
 SKILL_PROFIT_DOUBLE = "profit_double"
+SKILL_SKIP_IF_TOP = "skip_if_top"
+SKILL_ANCHOR_MIDPOINT = "anchor_midpoint"
+SKILL_BOTTOM_BONUS = "bottom_bonus"
+SKILL_DELAY_IF_BELOW = "delay_if_below"
+SKILL_MOVE_TO_TOP = "move_to_top"
+SKILL_LAST_PLACE_BONUS = "last_place_bonus"
 
 
 @dataclass(frozen=True)
@@ -77,6 +83,15 @@ B_DANGO = (
     "爱弥斯团子",
     "守岸人团子",
     "珂莱塔团子",
+)
+
+C_DANGO = (
+    "奥古斯塔团子",
+    "尤诺团子",
+    "弗洛洛团子",
+    "长离团子",
+    "今汐团子",
+    "卡卡罗团子",
 )
 
 GROUPS = {
@@ -138,6 +153,35 @@ GROUPS = {
             "珂莱塔团子": "28% 概率以骰子的双倍点数前进。",
         },
     ),
+    "C": GroupConfig(
+        key="C",
+        label="C组",
+        dango=C_DANGO,
+        skills={
+            "奥古斯塔团子": SKILL_SKIP_IF_TOP,
+            "尤诺团子": SKILL_ANCHOR_MIDPOINT,
+            "弗洛洛团子": SKILL_BOTTOM_BONUS,
+            "长离团子": SKILL_DELAY_IF_BELOW,
+            "今汐团子": SKILL_MOVE_TO_TOP,
+            "卡卡罗团子": SKILL_LAST_PLACE_BONUS,
+        },
+        skill_names={
+            "奥古斯塔团子": "总督权柄",
+            "尤诺团子": "锚定命途",
+            "弗洛洛团子": "优雅阴谋",
+            "长离团子": "谋而后定",
+            "今汐团子": "令尹之名",
+            "卡卡罗团子": "如影随形",
+        },
+        skill_desc={
+            "奥古斯塔团子": "回合开始时，若处于堆叠最顶端，则本回合不行动，且下回合最后一个行动。",
+            "尤诺团子": "每场比赛一次，经过赛程中点后，若排名前后有其他非布大王团子，则将这些团子传送至自己的格子。",
+            "弗洛洛团子": "回合开始时，若处于堆叠最底层，则移动时额外前进 3 格。",
+            "长离团子": "如果下方堆叠其他团子，下一个回合有 65% 概率最后一个行动。",
+            "今汐团子": "如果头顶堆叠其他团子，有 40% 概率移动到所有团子的最上方。",
+            "卡卡罗团子": "开始移动时，如果在最后一名，额外前进 3 格。",
+        },
+    ),
 }
 
 PRESET_STATES = {
@@ -185,6 +229,7 @@ PRESET_STATES = {
             king_active=True,
         ),
     },
+    "C": {},
 }
 
 LEGACY_STATE_ALIASES = {
@@ -217,6 +262,42 @@ def rank_order(group, stacks, progress):
                 arr.append((progress[name], stack_index, -order_index[name], name))
     arr.sort(reverse=True)
     return [item[3] for item in arr]
+
+
+def regular_stack_at(stacks, name):
+    pos = pos_of(stacks, name)
+    if pos is None:
+        return []
+    return [item for item in stacks[pos] if item != KING]
+
+
+def is_top_regular(stacks, name):
+    regulars = regular_stack_at(stacks, name)
+    return len(regulars) > 1 and regulars[-1] == name
+
+
+def is_bottom_regular(stacks, name):
+    regulars = regular_stack_at(stacks, name)
+    return len(regulars) > 1 and regulars[0] == name
+
+
+def has_regular_above(stacks, name):
+    regulars = regular_stack_at(stacks, name)
+    return name in regulars and regulars.index(name) < len(regulars) - 1
+
+
+def has_regular_below(stacks, name):
+    regulars = regular_stack_at(stacks, name)
+    return name in regulars and regulars.index(name) > 0
+
+
+def move_to_current_stack_top(stacks, name):
+    pos = pos_of(stacks, name)
+    if pos is None:
+        return
+    stack = stacks[pos]
+    stack.remove(name)
+    stack.append(name)
 
 
 def make_fresh_state(group, start_mode, rng):
@@ -377,7 +458,42 @@ def marked_this_round(group, stacks, progress):
     return marked
 
 
-def movement_distance(group, name, base, rolls, marked, runtime, rng):
+def prepare_round_skills(group, stacks, runtime, rng):
+    force_last_this_round = set(runtime["force_last_next"])
+    runtime["force_last_next"].clear()
+    round_flags = {
+        "skip": set(),
+        "bottom_bonus": set(),
+    }
+
+    top_at_start = {name for name in group.dango if is_top_regular(stacks, name)}
+    bottom_at_start = {name for name in group.dango if is_bottom_regular(stacks, name)}
+    above_at_start = {name for name in group.dango if has_regular_above(stacks, name)}
+    below_at_start = {name for name in group.dango if has_regular_below(stacks, name)}
+
+    for name in group.dango:
+        skill = group.skills.get(name)
+        if skill == SKILL_SKIP_IF_TOP and name in top_at_start:
+            round_flags["skip"].add(name)
+            runtime["force_last_next"].add(name)
+        elif skill == SKILL_BOTTOM_BONUS and name in bottom_at_start:
+            round_flags["bottom_bonus"].add(name)
+        elif skill == SKILL_DELAY_IF_BELOW and name in below_at_start and rng.random() < 0.65:
+            runtime["force_last_next"].add(name)
+        elif skill == SKILL_MOVE_TO_TOP and name in above_at_start and rng.random() < 0.40:
+            move_to_current_stack_top(stacks, name)
+
+    return round_flags, force_last_this_round
+
+
+def apply_action_overrides(action, round_flags, force_last_this_round):
+    action = [name for name in action if name not in round_flags["skip"]]
+    forced = [name for name in action if name in force_last_this_round]
+    action = [name for name in action if name not in force_last_this_round]
+    return action + forced
+
+
+def movement_distance(group, name, base, rolls, marked, round_flags, stacks, progress, runtime, rng):
     skill = group.skills.get(name)
     dist = base
 
@@ -405,6 +521,12 @@ def movement_distance(group, name, base, rolls, marked, runtime, rng):
 
     if skill == SKILL_MIN_ROLL_BONUS and base == min(rolls.values()):
         dist += 2
+
+    if skill == SKILL_BOTTOM_BONUS and name in round_flags["bottom_bonus"]:
+        dist += 3
+
+    if skill == SKILL_LAST_PLACE_BONUS and rank_order(group, stacks, progress)[-1] == name:
+        dist += 3
 
     runtime["prev_roll"][name] = base
 
@@ -442,16 +564,44 @@ def teleport_to_nearest_ahead(group, stacks, progress, name):
     progress[name] = target_progress
 
 
+def teleport_rank_neighbors_to_self(group, stacks, progress, name):
+    ranks = rank_order(group, stacks, progress)
+    idx = ranks.index(name)
+    neighbors = []
+    if idx > 0:
+        neighbors.append(ranks[idx - 1])
+    if idx < len(ranks) - 1:
+        neighbors.append(ranks[idx + 1])
+    if not neighbors:
+        return
+
+    target_pos = pos_of(stacks, name)
+    target_progress = progress[name]
+    for other in neighbors:
+        remove_single(stacks, other)
+        progress[other] = target_progress
+
+    stack = stacks.get(target_pos, [])
+    for other in reversed(neighbors):
+        stack.append(other)
+    if KING in stack:
+        stack = [KING] + [item for item in stack if item != KING]
+    stacks[target_pos] = stack
+
+
 def apply_after_move_hooks(group, stacks, progress, move_result, runtime, target_progress):
     midpoint = target_progress - FINISH // 2
     for name in move_result.moved:
-        if group.skills.get(name) != SKILL_GHOST or name in runtime["ghost_used"]:
-            continue
+        skill = group.skills.get(name)
         old = move_result.old_progress[name]
         new = move_result.new_progress[name]
-        if old < midpoint <= new:
+
+        if skill == SKILL_GHOST and name not in runtime["ghost_used"] and old < midpoint <= new:
             runtime["ghost_used"].add(name)
             teleport_to_nearest_ahead(group, stacks, progress, name)
+        elif skill == SKILL_ANCHOR_MIDPOINT and name not in runtime["anchor_used"] and old < midpoint <= new:
+            runtime["anchor_used"].add(name)
+            teleport_rank_neighbors_to_self(group, stacks, progress, name)
 
 
 def update_meeting_skills(group, stacks, runtime):
@@ -504,6 +654,8 @@ def simulate_one(group, state_key, start_mode, normal_faces, order_mode, rng):
         "comeback_triggered": set(),
         "comeback_active": set(),
         "ghost_used": set(),
+        "anchor_used": set(),
+        "force_last_next": set(),
     }
 
     fixed_action = None
@@ -517,6 +669,8 @@ def simulate_one(group, state_key, start_mode, normal_faces, order_mode, rng):
         if round_no == king_join_round and not king_active:
             add_king_to_finish(stacks)
             king_active = True
+
+        round_flags, force_last_this_round = prepare_round_skills(group, stacks, runtime, rng)
 
         participants = list(group.dango) + ([KING] if king_active else [])
         rolls = {name: roll_for(group, name, normal_faces, runtime, rng) for name in participants}
@@ -533,13 +687,14 @@ def simulate_one(group, state_key, start_mode, normal_faces, order_mode, rng):
             action = participants[:]
             rng.shuffle(action)
 
+        action = apply_action_overrides(action, round_flags, force_last_this_round)
         marked = marked_this_round(group, stacks, progress)
 
         for name in action:
             if name == KING:
                 move_result = move_piece(group, stacks, progress, KING, rolls[name], -1, rng, target_progress)
             else:
-                dist = movement_distance(group, name, rolls[name], rolls, marked, runtime, rng)
+                dist = movement_distance(group, name, rolls[name], rolls, marked, round_flags, stacks, progress, runtime, rng)
                 move_result = move_piece(group, stacks, progress, name, dist, 1, rng, target_progress)
 
             apply_after_move_hooks(group, stacks, progress, move_result, runtime, target_progress)
