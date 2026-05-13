@@ -42,7 +42,7 @@ N=50000, group=A, dice=1-3, state=fresh, start=random, order=random_each_round, 
 
 ## 赛事进度与预测
 
-更新时间：2026-05-12，B 组下半场结束后，C 组上半场开始前。
+更新时间：2026-05-13，C 组上半场结束后，C 组下半场开始前。
 
 ### 赛程概览
 
@@ -58,7 +58,7 @@ N=50000, group=A, dice=1-3, state=fresh, start=random, order=random_each_round, 
 | 05.10 | A 组下半场 | 已完赛 |
 | 05.11 | B 组上半场 | 已完赛 |
 | 05.12 | B 组下半场 | 已完赛 |
-| 05.13 | C 组上半场 | 待开赛 |
+| 05.13 | C 组上半场 | 已完赛 |
 | 05.14 | C 组下半场 | 待开赛 |
 | 05.15 | 谢幕赛 | 待开赛 |
 
@@ -292,8 +292,8 @@ N=100000, group=B, dice=1-3, state=after_upper, start=random, order=random_each_
 
 </details>
 
-<details open>
-<summary>2026-05-13 C 组上半场（赛前预测）</summary>
+<details>
+<summary>2026-05-13 C 组上半场（已完赛）</summary>
 
 复现命令：
 
@@ -328,6 +328,66 @@ N=100000, group=C, dice=1-3, state=fresh, start=random, order=random_each_round,
 今汐团子: 3.45
 长离团子: 3.92
 尤诺团子: 4.01
+```
+
+#### 实际结果
+
+| 名次 | 团子 |
+|---|---|
+| 1 | 长离团子 |
+| 2 | 卡卡罗团子 |
+| 3 | 今汐团子 |
+| 4 | 弗洛洛团子 |
+| 5 | 奥古斯塔团子 |
+| 6 | 尤诺团子 |
+
+#### 赛后站位
+
+| 格子 | 堆叠顺序 |
+|---|---|
+| 29 | 尤诺团子 |
+| 30 | 自下而上：奥古斯塔团子、弗洛洛团子 |
+| 31 | 自下而上：今汐团子、卡卡罗团子 |
+| 32 | 自下而上：布大王团子、长离团子 |
+
+</details>
+
+<details open>
+<summary>2026-05-14 C 组下半场（赛前预测）</summary>
+
+复现命令：
+
+```bash
+python tuanzi_race_sim.py --group C --state after_upper --n 100000 --seed 20260514 --rank-stats
+```
+
+预测使用 05.13 赛后站位，按环形赛道继续模拟，目标为下一次冲过终点。普通团子骰子仍按 1 / 2 / 3 等概率处理，每回合行动顺序随机；技能的内部状态按新场次重置。
+
+```text
+N=100000, group=C, dice=1-3, state=after_upper, start=random, order=random_each_round, target=next_finish, avg_round=9.43
+冠军率:
+弗洛洛团子: 22.38%
+今汐团子: 21.33%
+奥古斯塔团子: 18.79%
+卡卡罗团子: 16.58%
+长离团子: 11.29%
+尤诺团子: 9.64%
+
+前4率:
+弗洛洛团子: 84.91%
+卡卡罗团子: 78.40%
+今汐团子: 71.51%
+奥古斯塔团子: 63.92%
+长离团子: 55.11%
+尤诺团子: 46.15%
+
+平均名次:
+弗洛洛团子: 2.74
+卡卡罗团子: 3.18
+今汐团子: 3.30
+奥古斯塔团子: 3.53
+长离团子: 3.97
+尤诺团子: 4.28
 ```
 
 </details>
@@ -479,6 +539,12 @@ python tuanzi_race_sim.py --group B --state after_upper --n 100000 --seed 202605
 python tuanzi_race_sim.py --group C --state fresh --n 100000 --seed 20260513 --rank-stats
 ```
 
+预测 C 组下半场：
+
+```bash
+python tuanzi_race_sim.py --group C --state after_upper --n 100000 --seed 20260514 --rank-stats
+```
+
 ## 参数说明
 
 ### `--group`
@@ -550,7 +616,7 @@ python tuanzi_race_sim.py --group C --state fresh --n 100000 --seed 20260513 --r
 含义：
 
 - `fresh`：从第 1 格重新开赛，沿用原始默认模拟。A / B / C 组都支持。
-- `after_upper`：使用指定组别的上半场赛后站位，按环形赛道继续模拟下半场，目标为下一次冲过终点。目前 A / B 组都支持。
+- `after_upper`：使用指定组别的上半场赛后站位，按环形赛道继续模拟下半场，目标为下一次冲过终点。目前 A / B / C 组都支持。
 
 脚本仍兼容旧别名 `--state after_a_upper`，但 README 后续统一使用 `--group A --state after_upper`。
 
@@ -654,6 +720,12 @@ python tuanzi_race_sim.py --group B --state after_upper --n 100000 --seed 202605
 
 ```bash
 python tuanzi_race_sim.py --group C --state fresh --n 100000 --seed 20260513 --rank-stats
+```
+
+预测 C 组下半场并输出前 4 率：
+
+```bash
+python tuanzi_race_sim.py --group C --state after_upper --n 100000 --seed 20260514 --rank-stats
 ```
 
 ## 结果解读

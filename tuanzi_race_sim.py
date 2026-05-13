@@ -229,7 +229,28 @@ PRESET_STATES = {
             king_active=True,
         ),
     },
-    "C": {},
+    "C": {
+        "after_upper": RaceState(
+            key="after_upper",
+            label="C组上半场赛后",
+            stacks={
+                29: ["尤诺团子"],
+                30: ["奥古斯塔团子", "弗洛洛团子"],
+                31: ["今汐团子", "卡卡罗团子"],
+                32: [KING, "长离团子"],
+            },
+            progress={
+                "尤诺团子": 29,
+                "奥古斯塔团子": 30,
+                "弗洛洛团子": 30,
+                "今汐团子": 31,
+                "卡卡罗团子": 31,
+                "长离团子": 32,
+            },
+            target_progress=FINISH * 2,
+            king_active=True,
+        ),
+    },
 }
 
 LEGACY_STATE_ALIASES = {
