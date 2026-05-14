@@ -43,7 +43,7 @@ N=50000, group=A, dice=1-3, state=fresh, start=random, order=random_each_round, 
 
 ## 赛事进度与预测
 
-更新时间：2026-05-13，C 组上半场结束后，C 组下半场开始前。
+更新时间：2026-05-14，C 组下半场结束后，谢幕赛开始前。
 
 ### 赛程概览
 
@@ -60,7 +60,7 @@ N=50000, group=A, dice=1-3, state=fresh, start=random, order=random_each_round, 
 | 05.11 | B 组上半场 | 已完赛 |
 | 05.12 | B 组下半场 | 已完赛 |
 | 05.13 | C 组上半场 | 已完赛 |
-| 05.14 | C 组下半场 | 待开赛 |
+| 05.14 | C 组下半场 | 已完赛 |
 | 05.15 | 谢幕赛 | 待开赛 |
 
 ### 比赛记录
@@ -353,8 +353,8 @@ N=100000, group=C, dice=1-3, state=fresh, start=random, order=random_each_round,
 
 </details>
 
-<details open>
-<summary>2026-05-14 C 组下半场（赛前预测）</summary>
+<details>
+<summary>2026-05-14 C 组下半场（已完赛）</summary>
 
 复现命令：
 
@@ -389,6 +389,65 @@ N=100000, group=C, dice=1-3, state=after_upper, start=random, order=random_each_
 奥古斯塔团子: 3.53
 长离团子: 3.97
 尤诺团子: 4.28
+```
+
+#### 实际结果
+
+| 名次 | 团子 | 结果 |
+|---|---|---|
+| 1 | 尤诺团子 | 晋级 |
+| 2 | 卡卡罗团子 | 晋级 |
+| 3 | 奥古斯塔团子 | 晋级 |
+| 4 | 今汐团子 | 晋级 |
+| 5 | 弗洛洛团子 | 进入谢幕赛 |
+| 6 | 长离团子 | 进入谢幕赛 |
+
+</details>
+
+<details open>
+<summary>2026-05-15 谢幕赛（赛前预测）</summary>
+
+#### 参赛团子
+
+| 来源 | 团子 |
+|---|---|
+| A 组 | 菲比团子、陆·赫斯团子 |
+| B 组 | 琳奈团子、莫宁团子 |
+| C 组 | 弗洛洛团子、长离团子 |
+
+复现命令：
+
+```bash
+python tuanzi_race_sim.py --group farewell --state fresh --n 100000 --seed 20260515 --rank-stats
+```
+
+谢幕赛从第 1 格重新开跑，赛道与装置不变，普通团子默认骰子仍为 1 / 2 / 3。
+
+```text
+N=100000, group=farewell, dice=1-3, state=fresh, start=random, order=random_each_round, target=finish, avg_round=7.16
+冠军率:
+琳奈团子: 26.95%
+菲比团子: 18.55%
+弗洛洛团子: 16.98%
+陆·赫斯团子: 15.82%
+莫宁团子: 11.08%
+长离团子: 10.62%
+
+前4率:
+琳奈团子: 76.94%
+弗洛洛团子: 76.41%
+菲比团子: 73.34%
+陆·赫斯团子: 65.96%
+莫宁团子: 54.45%
+长离团子: 52.89%
+
+平均名次:
+琳奈团子: 2.97
+弗洛洛团子: 3.18
+菲比团子: 3.27
+陆·赫斯团子: 3.55
+莫宁团子: 3.99
+长离团子: 4.04
 ```
 
 </details>
@@ -468,7 +527,7 @@ N=100000, group=C, dice=1-3, state=after_upper, start=random, order=random_each_
 
 </details>
 
-<details open>
+<details>
 <summary>C 组技能</summary>
 
 | 团子名称 | 技能名称 | 技能 |
@@ -479,6 +538,20 @@ N=100000, group=C, dice=1-3, state=after_upper, start=random, order=random_each_
 | 长离团子 | 谋而后定 | 如果下方堆叠其他团子，下一个回合有 65% 概率最后一个行动。 |
 | 今汐团子 | 令尹之名 | 如果头顶堆叠其他团子，有 40% 概率移动到所有团子的最上方。 |
 | 卡卡罗团子 | 如影随形 | 开始移动时，如果在最后一名，额外前进 3 格。 |
+
+</details>
+
+<details open>
+<summary>谢幕赛技能</summary>
+
+| 团子名称 | 技能名称 | 技能 |
+|---|---|---|
+| 菲比团子 | 岁主庇佑 | 每次移动有 50% 概率额外前进 1 格。 |
+| 陆·赫斯团子 | 来颗糖吧 | 触发推进装置时，额外前进 3 格；触发阻遏装置时，额外后退 1 格。 |
+| 琳奈团子 | 炫彩时刻！ | 每回合中，20% 概率无法移动，60% 概率按双倍点数移动，20% 概率正常移动。 |
+| 莫宁团子 | 精密演算 | 投骰子时，点数固定按 3 / 2 / 1 循环出现。 |
+| 弗洛洛团子 | 优雅阴谋 | 回合开始时，若处于堆叠最底层，则移动时额外前进 3 格。 |
+| 长离团子 | 谋而后定 | 如果下方堆叠其他团子，下一个回合有 65% 概率最后一个行动。 |
 
 </details>
 
@@ -546,6 +619,12 @@ python tuanzi_race_sim.py --group C --state fresh --n 100000 --seed 20260513 --r
 python tuanzi_race_sim.py --group C --state after_upper --n 100000 --seed 20260514 --rank-stats
 ```
 
+预测谢幕赛：
+
+```bash
+python tuanzi_race_sim.py --group farewell --state fresh --n 100000 --seed 20260515 --rank-stats
+```
+
 ## 参数说明
 
 ### `--group`
@@ -558,6 +637,7 @@ python tuanzi_race_sim.py --group C --state after_upper --n 100000 --seed 202605
 --group A
 --group B
 --group C
+--group farewell
 ```
 
 默认：
@@ -616,7 +696,7 @@ python tuanzi_race_sim.py --group C --state after_upper --n 100000 --seed 202605
 
 含义：
 
-- `fresh`：从第 1 格重新开赛，沿用原始默认模拟。A / B / C 组都支持。
+- `fresh`：从第 1 格重新开赛，沿用原始默认模拟。A / B / C 组和谢幕赛都支持。
 - `after_upper`：使用指定组别的上半场赛后站位，按环形赛道继续模拟下半场，目标为下一次冲过终点。目前 A / B / C 组都支持。
 
 脚本仍兼容旧别名 `--state after_a_upper`，但 README 后续统一使用 `--group A --state after_upper`。
@@ -727,6 +807,12 @@ python tuanzi_race_sim.py --group C --state fresh --n 100000 --seed 20260513 --r
 
 ```bash
 python tuanzi_race_sim.py --group C --state after_upper --n 100000 --seed 20260514 --rank-stats
+```
+
+预测谢幕赛并输出前 4 率：
+
+```bash
+python tuanzi_race_sim.py --group farewell --state fresh --n 100000 --seed 20260515 --rank-stats
 ```
 
 ## 结果解读

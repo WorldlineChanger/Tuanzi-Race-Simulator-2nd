@@ -6,6 +6,7 @@
   python tuanzi_race_sim.py --group A --state fresh --n 50000
   python tuanzi_race_sim.py --group A --state after_upper --n 100000 --rank-stats
   python tuanzi_race_sim.py --group B --state fresh --n 100000 --rank-stats
+  python tuanzi_race_sim.py --group farewell --state fresh --n 100000 --rank-stats
 """
 import argparse
 import collections
@@ -92,6 +93,15 @@ C_DANGO = (
     "长离团子",
     "今汐团子",
     "卡卡罗团子",
+)
+
+FAREWELL_DANGO = (
+    "菲比团子",
+    "陆·赫斯团子",
+    "琳奈团子",
+    "莫宁团子",
+    "弗洛洛团子",
+    "长离团子",
 )
 
 GROUPS = {
@@ -182,6 +192,35 @@ GROUPS = {
             "卡卡罗团子": "开始移动时，如果在最后一名，额外前进 3 格。",
         },
     ),
+    "farewell": GroupConfig(
+        key="farewell",
+        label="谢幕赛",
+        dango=FAREWELL_DANGO,
+        skills={
+            "菲比团子": SKILL_BLESSING,
+            "陆·赫斯团子": SKILL_DEVICE_BONUS,
+            "琳奈团子": SKILL_COLORFUL,
+            "莫宁团子": SKILL_FIXED_321,
+            "弗洛洛团子": SKILL_BOTTOM_BONUS,
+            "长离团子": SKILL_DELAY_IF_BELOW,
+        },
+        skill_names={
+            "菲比团子": "岁主庇佑",
+            "陆·赫斯团子": "来颗糖吧",
+            "琳奈团子": "炫彩时刻！",
+            "莫宁团子": "精密演算",
+            "弗洛洛团子": "优雅阴谋",
+            "长离团子": "谋而后定",
+        },
+        skill_desc={
+            "菲比团子": "每次移动有 50% 概率额外前进 1 格。",
+            "陆·赫斯团子": "触发推进装置时，额外前进 3 格；触发阻遏装置时，额外后退 1 格。",
+            "琳奈团子": "每回合中，20% 概率无法移动，60% 概率按双倍点数移动，20% 概率正常移动。",
+            "莫宁团子": "投骰子时，点数固定按 3 / 2 / 1 循环出现。",
+            "弗洛洛团子": "回合开始时，若处于堆叠最底层，则移动时额外前进 3 格。",
+            "长离团子": "如果下方堆叠其他团子，下一个回合有 65% 概率最后一个行动。",
+        },
+    ),
 }
 
 PRESET_STATES = {
@@ -251,6 +290,7 @@ PRESET_STATES = {
             king_active=True,
         ),
     },
+    "farewell": {},
 }
 
 LEGACY_STATE_ALIASES = {
