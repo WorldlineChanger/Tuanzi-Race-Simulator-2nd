@@ -7,6 +7,7 @@
   python tuanzi_race_sim.py --group A --state after_upper --n 100000 --rank-stats
   python tuanzi_race_sim.py --group B --state fresh --n 100000 --rank-stats
   python tuanzi_race_sim.py --group farewell --state fresh --n 100000 --rank-stats
+  python tuanzi_race_sim.py --group knockout_A --state fresh --n 100000 --rank-stats
 """
 import argparse
 import collections
@@ -15,9 +16,6 @@ from dataclasses import dataclass
 
 
 KING = "布大王团子"
-PROP = {3, 11, 16, 23}     # 推进装置
-OBST = {10, 28}            # 阻遏装置
-RIFT = {6, 20}             # 时空裂隙
 FINISH = 32
 
 SKILL_DEVICE_BONUS = "device_bonus"
@@ -41,6 +39,32 @@ SKILL_LAST_PLACE_BONUS = "last_place_bonus"
 
 
 @dataclass(frozen=True)
+class TrackConfig:
+    key: str
+    label: str
+    prop: frozenset
+    obst: frozenset
+    rift: frozenset
+
+
+GROUP_STAGE_TRACK = TrackConfig(
+    key="group_stage",
+    label="小组赛赛道",
+    prop=frozenset({3, 11, 16, 23}),
+    obst=frozenset({10, 28}),
+    rift=frozenset({6, 20}),
+)
+
+KNOCKOUT_TRACK = TrackConfig(
+    key="knockout",
+    label="淘汰赛赛道",
+    prop=frozenset({4, 10, 20}),
+    obst=frozenset({16, 26, 30}),
+    rift=frozenset({6, 14, 23}),
+)
+
+
+@dataclass(frozen=True)
 class GroupConfig:
     key: str
     label: str
@@ -48,6 +72,8 @@ class GroupConfig:
     skills: dict
     skill_names: dict
     skill_desc: dict
+    track: TrackConfig
+    advance_count: int = 4
 
 
 @dataclass(frozen=True)
@@ -104,6 +130,24 @@ FAREWELL_DANGO = (
     "长离团子",
 )
 
+KNOCKOUT_A_DANGO = (
+    "奥古斯塔团子",
+    "今汐团子",
+    "绯雪团子",
+    "尤诺团子",
+    "卡卡罗团子",
+    "卡提希娅团子",
+)
+
+KNOCKOUT_B_DANGO = (
+    "达妮娅团子",
+    "西格莉卡团子",
+    "守岸人团子",
+    "千咲团子",
+    "珂莱塔团子",
+    "爱弥斯团子",
+)
+
 GROUPS = {
     "A": GroupConfig(
         key="A",
@@ -133,6 +177,7 @@ GROUPS = {
             "卡提希娅团子": "每场最多触发 1 次。自身移动结束后如果处于最后一名，则之后每次行动有 60% 概率额外前进 2 格。",
             "菲比团子": "每次移动有 50% 概率额外前进 1 格。",
         },
+        track=GROUP_STAGE_TRACK,
     ),
     "B": GroupConfig(
         key="B",
@@ -162,6 +207,7 @@ GROUPS = {
             "守岸人团子": "骰子只会掷出 2 或 3。",
             "珂莱塔团子": "28% 概率以骰子的双倍点数前进。",
         },
+        track=GROUP_STAGE_TRACK,
     ),
     "C": GroupConfig(
         key="C",
@@ -191,6 +237,7 @@ GROUPS = {
             "今汐团子": "如果头顶堆叠其他团子，有 40% 概率移动到所有团子的最上方。",
             "卡卡罗团子": "开始移动时，如果在最后一名，额外前进 3 格。",
         },
+        track=GROUP_STAGE_TRACK,
     ),
     "farewell": GroupConfig(
         key="farewell",
@@ -220,8 +267,45 @@ GROUPS = {
             "弗洛洛团子": "回合开始时，若处于堆叠最底层，则移动时额外前进 3 格。",
             "长离团子": "如果下方堆叠其他团子，下一个回合有 65% 概率最后一个行动。",
         },
+        track=GROUP_STAGE_TRACK,
     ),
 }
+
+def make_mixed_group(key, label, dango, track):
+    merged_skills = {}
+    merged_skill_names = {}
+    merged_skill_desc = {}
+    for config in GROUPS.values():
+        merged_skills.update(config.skills)
+        merged_skill_names.update(config.skill_names)
+        merged_skill_desc.update(config.skill_desc)
+
+    return GroupConfig(
+        key=key,
+        label=label,
+        dango=dango,
+        skills={name: merged_skills[name] for name in dango},
+        skill_names={name: merged_skill_names[name] for name in dango},
+        skill_desc={name: merged_skill_desc[name] for name in dango},
+        track=track,
+        advance_count=3,
+    )
+
+
+GROUPS["knockout_A"] = make_mixed_group(
+    key="knockout_A",
+    label="淘汰赛A组",
+    dango=KNOCKOUT_A_DANGO,
+    track=KNOCKOUT_TRACK,
+)
+
+GROUPS["knockout_B"] = make_mixed_group(
+    key="knockout_B",
+    label="淘汰赛B组",
+    dango=KNOCKOUT_B_DANGO,
+    track=KNOCKOUT_TRACK,
+)
+
 
 PRESET_STATES = {
     "A": {
@@ -291,6 +375,8 @@ PRESET_STATES = {
         ),
     },
     "farewell": {},
+    "knockout_A": {},
+    "knockout_B": {},
 }
 
 LEGACY_STATE_ALIASES = {
@@ -405,15 +491,15 @@ def device_step(pos, delta, circular):
     return wrap_pos(pos + delta) if circular else clamp_pos(pos + delta)
 
 
-def move_king_position(start, dist, direction, circular):
+def move_king_position(start, dist, direction, circular, track):
     pos = wrap_pos(start + direction * dist) if circular else clamp_pos(start + direction * dist)
     for _ in range(10):
-        if pos in RIFT:
+        if pos in track.rift:
             break
-        if pos in PROP:
+        if pos in track.prop:
             pos = device_step(pos, 1, circular)
             continue
-        if pos in OBST:
+        if pos in track.obst:
             pos = device_step(pos, -1, circular)
             continue
         break
@@ -435,9 +521,10 @@ def move_piece(group, stacks, progress, mover, dist, direction, rng, target_prog
 
     old_progress = {name: progress[name] for name in segment if name != KING}
     circular = target_progress > FINISH
+    track = group.track
 
     if mover == KING:
-        pos = move_king_position(start, dist, direction, circular)
+        pos = move_king_position(start, dist, direction, circular, track)
         delta = signed_circular_delta(start, pos, direction) if circular else pos - start
         finished = False
     else:
@@ -449,17 +536,17 @@ def move_piece(group, stacks, progress, mover, dist, direction, rng, target_prog
 
         pos = wrap_pos(final_progress)
         for _ in range(10):
-            if finished or pos in RIFT:
+            if finished or pos in track.rift:
                 break
             skill = group.skills.get(mover)
-            if pos in PROP:
+            if pos in track.prop:
                 final_progress += 1 + (3 if skill == SKILL_DEVICE_BONUS and direction == 1 else 0)
                 finished = final_progress >= target_progress
                 if finished:
                     final_progress = target_progress
                 pos = wrap_pos(final_progress)
                 continue
-            if pos in OBST:
+            if pos in track.obst:
                 final_progress = max(1, final_progress - (1 + (1 if skill == SKILL_DEVICE_BONUS and direction == 1 else 0)))
                 pos = wrap_pos(final_progress)
                 continue
@@ -485,7 +572,7 @@ def move_piece(group, stacks, progress, mover, dist, direction, rng, target_prog
         if KING in new_stack:
             new_stack = [KING] + [name for name in new_stack if name != KING]
 
-    if pos in RIFT:
+    if pos in track.rift:
         regulars = [name for name in new_stack if name != KING]
         rng.shuffle(regulars)
         new_stack = ([KING] if KING in new_stack else []) + regulars
@@ -820,13 +907,13 @@ def print_report(group, state_key, n, dice_label, start_mode, order_mode, avg_ro
     if not rank_stats:
         return
 
-    print("前4率:")
-    top4_rates = []
+    print(f"前{group.advance_count}率:")
+    advance_rates = []
     for name in group.dango:
-        top4 = sum(rank_counter[name][i] for i in range(1, 5))
-        top4_rates.append((top4, name))
-    for top4, name in sorted(top4_rates, reverse=True):
-        print(f"{name}: {top4 / n * 100:.2f}%")
+        advanced = sum(rank_counter[name][i] for i in range(1, group.advance_count + 1))
+        advance_rates.append((advanced, name))
+    for advanced, name in sorted(advance_rates, reverse=True):
+        print(f"{name}: {advanced / n * 100:.2f}%")
 
     print("平均名次:")
     avg_ranks = []
