@@ -650,19 +650,21 @@ def teleport_rank_neighbors_to_self(group, stacks, progress, name):
     stacks[target_pos] = stack
 
 
-def apply_after_move_hooks(group, stacks, progress, move_result, runtime, target_progress):
-    midpoint = target_progress - FINISH // 2
-    for name in move_result.moved:
-        skill = group.skills.get(name)
-        old = move_result.old_progress[name]
-        new = move_result.new_progress[name]
+def apply_after_move_hooks(group, stacks, progress, actor, move_result, runtime, target_progress):
+    if actor == KING or actor not in move_result.moved:
+        return
 
-        if skill == SKILL_GHOST and name not in runtime["ghost_used"] and old < midpoint <= new:
-            runtime["ghost_used"].add(name)
-            teleport_to_nearest_ahead(group, stacks, progress, name)
-        elif skill == SKILL_ANCHOR_MIDPOINT and name not in runtime["anchor_used"] and old < midpoint <= new:
-            runtime["anchor_used"].add(name)
-            teleport_rank_neighbors_to_self(group, stacks, progress, name)
+    midpoint = target_progress - FINISH // 2
+    skill = group.skills.get(actor)
+    old = move_result.old_progress[actor]
+    new = move_result.new_progress[actor]
+
+    if skill == SKILL_GHOST and actor not in runtime["ghost_used"] and old < midpoint <= new:
+        runtime["ghost_used"].add(actor)
+        teleport_to_nearest_ahead(group, stacks, progress, actor)
+    elif skill == SKILL_ANCHOR_MIDPOINT and actor not in runtime["anchor_used"] and old < midpoint <= new:
+        runtime["anchor_used"].add(actor)
+        teleport_rank_neighbors_to_self(group, stacks, progress, actor)
 
 
 def update_meeting_skills(group, stacks, runtime):
@@ -758,7 +760,7 @@ def simulate_one(group, state_key, start_mode, normal_faces, order_mode, rng):
                 dist = movement_distance(group, name, rolls[name], rolls, marked, round_flags, stacks, progress, runtime, rng)
                 move_result = move_piece(group, stacks, progress, name, dist, 1, rng, target_progress)
 
-            apply_after_move_hooks(group, stacks, progress, move_result, runtime, target_progress)
+            apply_after_move_hooks(group, stacks, progress, name, move_result, runtime, target_progress)
             update_meeting_skills(group, stacks, runtime)
             update_comeback_skill(group, stacks, progress, name, runtime)
 
